@@ -1,5 +1,4 @@
 import AppIntents
-import WidgetKit
 
 struct StartRecordingIntent: AppIntent {
     static var title: LocalizedStringResource = "録音開始"
@@ -7,8 +6,6 @@ struct StartRecordingIntent: AppIntent {
     static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        let category = WidgetDataStore.selectedCategory()
-        let categoryId = category?.id.uuidString ?? ""
-        return .result()
+        .result()
     }
 }

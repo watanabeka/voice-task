@@ -5,7 +5,7 @@ struct VoiceFusenWidgetEntryView: View {
     var entry: VoiceFusenProvider.Entry
 
     private var categoryColor: Color {
-        Color(hex: entry.category?.colorHex ?? "#4A90D9")
+        Color(hex: entry.category?.colorHex ?? AppConstants.presetColors[0])
     }
 
     private var categoryName: String {
@@ -14,49 +14,9 @@ struct VoiceFusenWidgetEntryView: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            // Category navigation row
-            HStack {
-                Button(intent: SwitchCategoryIntent(direction: -1)) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(categoryColor)
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Text(categoryName)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(categoryColor)
-                    .lineLimit(1)
-
-                Spacer()
-
-                Button(intent: SwitchCategoryIntent(direction: 1)) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(categoryColor)
-                }
-                .buttonStyle(.plain)
-            }
-
+            categoryNavigationRow
             Spacer()
-
-            // Record button - opens main app via URL scheme
-            if let category = entry.category {
-                Link(destination: URL(string: "voicefusen://record?categoryId=\(category.id.uuidString)")!) {
-                    Circle()
-                        .fill(categoryColor)
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "mic.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(.white)
-                        )
-                        .shadow(color: categoryColor.opacity(0.3), radius: 4, y: 2)
-                }
-            }
-
+            recordButton
             Spacer()
         }
         .padding(12)
@@ -64,6 +24,53 @@ struct VoiceFusenWidgetEntryView: View {
             ZStack {
                 Color.white
                 categoryColor.opacity(0.12)
+            }
+        }
+    }
+
+    // MARK: - Subviews
+
+    private var categoryNavigationRow: some View {
+        HStack {
+            Button(intent: SwitchCategoryIntent(direction: -1)) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(categoryColor)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text(categoryName)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(categoryColor)
+                .lineLimit(1)
+
+            Spacer()
+
+            Button(intent: SwitchCategoryIntent(direction: 1)) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(categoryColor)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private var recordButton: some View {
+        if let category = entry.category,
+           let url = URL(string: "\(AppConstants.urlScheme)://record?categoryId=\(category.id.uuidString)") {
+            Link(destination: url) {
+                Circle()
+                    .fill(categoryColor)
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.white)
+                    )
+                    .shadow(color: categoryColor.opacity(0.3), radius: 4, y: 2)
             }
         }
     }

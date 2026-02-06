@@ -6,14 +6,14 @@ struct HomeView: View {
     @State private var editingCategory: Category?
 
     private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: DesignMetrics.Spacing.sm),
+        GridItem(.flexible(), spacing: DesignMetrics.Spacing.sm),
     ]
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 12) {
+                LazyVGrid(columns: columns, spacing: DesignMetrics.Spacing.sm) {
                     ForEach(dataStore.categories) { category in
                         NavigationLink(value: category) {
                             CategoryCard(
@@ -36,9 +36,9 @@ struct HomeView: View {
                         }
                     }
                 }
-                .padding(16)
+                .padding(DesignMetrics.Spacing.md)
             }
-            .background(Color(hex: "#F8F9FA"))
+            .background(Color.appBackground)
             .navigationTitle("ボイスふせん")
             .navigationDestination(for: Category.self) { category in
                 TaskListView(category: category)
@@ -61,4 +61,3 @@ struct HomeView: View {
         }
     }
 }
-

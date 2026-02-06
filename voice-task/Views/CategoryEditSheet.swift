@@ -19,28 +19,10 @@ struct CategoryEditSheet: View {
                 }
 
                 Section("カラー") {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
-                        ForEach(AppConstants.presetColors, id: \.self) { hex in
-                            Circle()
-                                .fill(Color(hex: hex))
-                                .frame(width: 44, height: 44)
-                                .overlay(
-                                    Circle()
-                                        .strokeBorder(.white, lineWidth: 3)
-                                        .opacity(selectedColorHex == hex ? 1 : 0)
-                                )
-                                .overlay(
-                                    Circle()
-                                        .strokeBorder(Color(hex: hex).opacity(0.5), lineWidth: 2)
-                                        .opacity(selectedColorHex == hex ? 1 : 0)
-                                        .scaleEffect(1.15)
-                                )
-                                .onTapGesture {
-                                    selectedColorHex = hex
-                                }
-                        }
-                    }
-                    .padding(.vertical, 8)
+                    PresetColorPicker(
+                        selectedHex: $selectedColorHex,
+                        colors: AppConstants.presetColors
+                    )
                 }
             }
             .navigationTitle(isEditing ? "カテゴリを編集" : "カテゴリを追加")

@@ -4,22 +4,24 @@ struct CategoryCard: View {
     let category: Category
     let pendingCount: Int
 
+    private var categoryColor: Color { Color(hex: category.colorHex) }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DesignMetrics.Spacing.xs) {
             Text(category.name)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color(hex: category.colorHex))
+                .font(.system(size: DesignMetrics.FontSize.headline, weight: .semibold))
+                .foregroundStyle(categoryColor)
 
             Text("\(pendingCount)件")
-                .font(.system(size: 12))
-                .foregroundStyle(Color(hex: "#95A5A6"))
+                .font(.system(size: DesignMetrics.FontSize.caption))
+                .foregroundStyle(.textSecondary)
         }
-        .frame(maxWidth: .infinity, minHeight: 90, alignment: .leading)
-        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: DesignMetrics.Size.categoryCardMinHeight, alignment: .leading)
+        .padding(DesignMetrics.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: category.colorHex).opacity(0.15))
+            RoundedRectangle(cornerRadius: DesignMetrics.CornerRadius.card)
+                .fill(categoryColor.opacity(DesignMetrics.Opacity.categoryBackground))
         )
-        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+        .appShadow(DesignMetrics.cardShadow)
     }
 }

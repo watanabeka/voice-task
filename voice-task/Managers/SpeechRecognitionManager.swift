@@ -12,59 +12,85 @@ final class SpeechRecognitionManager: @unchecked Sendable {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
 
+    // MARK: - Permissions
+
     func requestPermissions(completion: @escaping (Bool) -> Void) {
         SFSpeechRecognizer.requestAuthorization { status in
-            let authorized = status == .authorized
-            if authorized {
-                AVAudioApplication.requestRecordPermission { allowed in
-                    completion(allowed)
-                }
-            } else {
+            guard status == .authorized else {
                 completion(false)
+                return
+            }
+            AVAudioApplication.requestRecordPermission { allowed in
+                completion(allowed)
             }
         }
     }
 
+    // MARK: - Recording
+
     func startRecording() {
+        resetRecognition()
+
+        guard configureAudioSession(),
+              let request = createRecognitionRequest() else { return }
+
+        recognitionRequest = request
+        startRecognitionTask(with: request)
+        startAudioEngine(with: request)
+    }
+
+    func stopRecording() {
+        audioEngine.stop()
+        recognitionRequest?.endAudio()
+        isRecording = false
+    }
+
+    // MARK: - Private helpers
+
+    private func resetRecognition() {
         recognitionTask?.cancel()
         recognitionTask = nil
         recognizedText = ""
+    }
 
-        let audioSession = AVAudioSession.sharedInstance()
+    private func configureAudioSession() -> Bool {
+        let session = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            try session.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            return true
         } catch {
             print("Audio session setup failed: \(error)")
-            return
+            return false
         }
+    }
 
-        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-        guard let recognitionRequest else { return }
-        recognitionRequest.shouldReportPartialResults = true
-
+    private func createRecognitionRequest() -> SFSpeechAudioBufferRecognitionRequest? {
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
         if speechRecognizer?.supportsOnDeviceRecognition == true {
-            recognitionRequest.requiresOnDeviceRecognition = true
+            request.requiresOnDeviceRecognition = true
         }
+        return request
+    }
 
-        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+    private func startRecognitionTask(with request: SFSpeechAudioBufferRecognitionRequest) {
+        recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
             if let result {
                 self.recognizedText = result.bestTranscription.formattedString
             }
-            if error != nil || (result?.isFinal == true) {
-                self.audioEngine.stop()
-                self.audioEngine.inputNode.removeTap(onBus: 0)
-                self.recognitionRequest = nil
-                self.recognitionTask = nil
-                self.isRecording = false
+            if error != nil || result?.isFinal == true {
+                self.tearDownAudioPipeline()
             }
         }
+    }
 
+    private func startAudioEngine(with request: SFSpeechAudioBufferRecognitionRequest) {
         let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
-            recognitionRequest.append(buffer)
+        let format = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+            request.append(buffer)
         }
 
         audioEngine.prepare()
@@ -76,9 +102,11 @@ final class SpeechRecognitionManager: @unchecked Sendable {
         }
     }
 
-    func stopRecording() {
+    private func tearDownAudioPipeline() {
         audioEngine.stop()
-        recognitionRequest?.endAudio()
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest = nil
+        recognitionTask = nil
         isRecording = false
     }
 }

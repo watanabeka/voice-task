@@ -13,64 +13,55 @@ struct TaskListView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            List {
-                ForEach(tasks) { task in
-                    TaskRow(task: task) {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            dataStore.toggleTask(task.id)
-                        }
-                    }
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                }
-                .onDelete { indexSet in
-                    for index in indexSet {
-                        dataStore.deleteTask(tasks[index].id)
-                    }
-                }
+            taskList
+            RecordButton(isRecording: isRecording, color: Color(hex: category.colorHex)) {
+                toggleRecording()
             }
-            .listStyle(.plain)
-            .overlay {
-                if tasks.isEmpty {
-                    ContentUnavailableView {
-                        Label("タスクがありません", systemImage: "tray")
-                    } description: {
-                        Text("録音ボタンをタップして\n音声でタスクを追加しましょう")
-                    }
-                }
-            }
-
-            RecordButton(
-                isRecording: isRecording,
-                color: Color(hex: category.colorHex)
-            ) {
-                if isRecording {
-                    stopRecording()
-                } else {
-                    startRecording()
-                }
-            }
-            .padding(24)
+            .padding(DesignMetrics.Spacing.lg)
         }
-        .background(Color(hex: "#F8F9FA"))
+        .background(Color.appBackground)
         .navigationTitle(category.name)
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func startRecording() {
-        speechManager.startRecording()
-        isRecording = true
+    private var taskList: some View {
+        List {
+            ForEach(tasks) { task in
+                TaskRow(task: task) {
+                    withAnimation(.easeInOut(duration: DesignMetrics.Animation.toggleDuration)) {
+                        dataStore.toggleTask(task.id)
+                    }
+                }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    dataStore.deleteTask(tasks[index].id)
+                }
+            }
+        }
+        .listStyle(.plain)
+        .overlay {
+            if tasks.isEmpty {
+                ContentUnavailableView {
+                    Label("タスクがありません", systemImage: "tray")
+                } description: {
+                    Text("録音ボタンをタップして\n音声でタスクを追加しましょう")
+                }
+            }
+        }
     }
 
-    private func stopRecording() {
-        speechManager.stopRecording()
-        isRecording = false
-
-        let text = speechManager.recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-
-        let task = TaskItem(text: text, categoryId: category.id)
-        dataStore.addTask(task)
-        speechManager.recognizedText = ""
+    private func toggleRecording() {
+        if isRecording {
+            speechManager.stopRecording()
+            isRecording = false
+            dataStore.addTaskFromSpeech(speechManager.recognizedText, categoryId: category.id)
+            speechManager.recognizedText = ""
+        } else {
+            speechManager.startRecording()
+            isRecording = true
+        }
     }
 }

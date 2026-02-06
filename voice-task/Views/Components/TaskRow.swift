@@ -4,28 +4,30 @@ struct TaskRow: View {
     let task: TaskItem
     let onToggle: () -> Void
 
+    private var stateColor: Color { task.isDone ? .textDone : .textPrimary }
+
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: DesignMetrics.Spacing.sm) {
             Button(action: onToggle) {
                 Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(task.isDone ? Color(hex: "#BDC3C7") : Color(hex: "#2C3E50"))
+                    .font(.system(size: DesignMetrics.FontSize.icon))
+                    .foregroundStyle(stateColor)
             }
             .buttonStyle(.plain)
 
             Text(task.text)
-                .font(.system(size: 15))
-                .foregroundStyle(task.isDone ? Color(hex: "#BDC3C7") : Color(hex: "#2C3E50"))
-                .strikethrough(task.isDone, color: Color(hex: "#BDC3C7"))
+                .font(.system(size: DesignMetrics.FontSize.body))
+                .foregroundStyle(stateColor)
+                .strikethrough(task.isDone, color: .textDone)
                 .lineLimit(2)
 
             Spacer()
 
             Text(task.createdAt.formatted(date: .abbreviated, time: .shortened))
-                .font(.system(size: 12))
-                .foregroundStyle(Color(hex: "#95A5A6"))
+                .font(.system(size: DesignMetrics.FontSize.caption))
+                .foregroundStyle(.textSecondary)
         }
-        .padding(.vertical, 4)
-        .opacity(task.isDone ? 0.6 : 1.0)
+        .padding(.vertical, DesignMetrics.Spacing.xxs)
+        .opacity(task.isDone ? DesignMetrics.Opacity.doneTask : 1.0)
     }
 }

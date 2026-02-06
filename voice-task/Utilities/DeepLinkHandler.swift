@@ -1,18 +1,21 @@
 import Foundation
 
 @Observable
-final class DeepLinkHandler {
+final class DeepLinkHandler: @unchecked Sendable {
     var pendingRecordingCategoryId: UUID?
 
     func handle(url: URL) {
-        guard url.scheme == AppConstants.urlScheme else { return }
+        guard url.scheme == AppConstants.urlScheme,
+              url.host == "record" else { return }
 
-        if url.host == "record" {
-            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-            if let categoryIdString = components?.queryItems?.first(where: { $0.name == "categoryId" })?.value,
-               let categoryId = UUID(uuidString: categoryIdString) {
-                pendingRecordingCategoryId = categoryId
-            }
-        }
+        pendingRecordingCategoryId = extractCategoryId(from: url)
+    }
+
+    private func extractCategoryId(from url: URL) -> UUID? {
+        URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .first { $0.name == "categoryId" }?
+            .value
+            .flatMap(UUID.init(uuidString:))
     }
 }

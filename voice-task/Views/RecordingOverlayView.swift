@@ -12,92 +12,79 @@ struct RecordingOverlayView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    cancelAndDismiss()
-                }
-
-            VStack(spacing: 24) {
-                Text(isRecording ? "録音中..." : "録音準備完了")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#2C3E50"))
-
-                if !speechManager.recognizedText.isEmpty {
-                    Text(speechManager.recognizedText)
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color(hex: "#2C3E50"))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                        .frame(maxHeight: 100)
-                }
-
-                RecordButton(
-                    isRecording: isRecording,
-                    color: categoryColor
-                ) {
-                    if isRecording {
-                        stopAndSave()
-                    } else {
-                        startRecording()
-                    }
-                }
-
-                Button("キャンセル") {
-                    cancelAndDismiss()
-                }
-                .font(.system(size: 15))
-                .foregroundStyle(Color(hex: "#95A5A6"))
-            }
-            .padding(32)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(.white)
-                    .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
-            )
-            .padding(32)
+            dimmedBackground
+            recordingPanel
         }
         .onAppear {
-            if !hasStarted {
-                hasStarted = true
-                startRecording()
-            }
+            guard !hasStarted else { return }
+            hasStarted = true
+            startRecording()
         }
     }
 
-    private var categoryColor: Color {
-        if let category = dataStore.categories.first(where: { $0.id == categoryId }) {
-            return Color(hex: category.colorHex)
+    // MARK: - Subviews
+
+    private var dimmedBackground: some View {
+        Color.black.opacity(DesignMetrics.Opacity.dimmedOverlay)
+            .ignoresSafeArea()
+            .onTapGesture { cancelAndDismiss() }
+    }
+
+    private var recordingPanel: some View {
+        VStack(spacing: DesignMetrics.Spacing.lg) {
+            Text(isRecording ? "録音中..." : "録音準備完了")
+                .font(.system(size: DesignMetrics.FontSize.headline, weight: .semibold))
+                .foregroundStyle(.textPrimary)
+
+            if !speechManager.recognizedText.isEmpty {
+                Text(speechManager.recognizedText)
+                    .font(.system(size: DesignMetrics.FontSize.body))
+                    .foregroundStyle(.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .frame(maxHeight: 100)
+            }
+
+            RecordButton(isRecording: isRecording, color: dataStore.categoryColor(for: categoryId)) {
+                toggleRecording()
+            }
+
+            Button("キャンセル") { cancelAndDismiss() }
+                .font(.system(size: DesignMetrics.FontSize.body))
+                .foregroundStyle(.textSecondary)
         }
-        return Color(hex: "#4A90D9")
+        .padding(DesignMetrics.Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: DesignMetrics.CornerRadius.overlay)
+                .fill(.white)
+                .shadow(color: .black.opacity(DesignMetrics.Opacity.overlayShadow), radius: 20, y: 10)
+        )
+        .padding(DesignMetrics.Spacing.xl)
+    }
+
+    // MARK: - Actions
+
+    private func toggleRecording() {
+        if isRecording {
+            speechManager.stopRecording()
+            isRecording = false
+            dataStore.addTaskFromSpeech(speechManager.recognizedText, categoryId: categoryId)
+            dismiss()
+        } else {
+            startRecording()
+        }
     }
 
     private func startRecording() {
         speechManager.requestPermissions { authorized in
-            if authorized {
-                speechManager.startRecording()
-                isRecording = true
-            }
+            guard authorized else { return }
+            speechManager.startRecording()
+            isRecording = true
         }
-    }
-
-    private func stopAndSave() {
-        speechManager.stopRecording()
-        isRecording = false
-
-        let text = speechManager.recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !text.isEmpty {
-            let task = TaskItem(text: text, categoryId: categoryId)
-            dataStore.addTask(task)
-        }
-        dismiss()
     }
 
     private func cancelAndDismiss() {
-        if isRecording {
-            speechManager.stopRecording()
-            isRecording = false
-        }
+        if isRecording { speechManager.stopRecording() }
         dismiss()
     }
 }

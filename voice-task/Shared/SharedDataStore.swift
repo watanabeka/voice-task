@@ -132,6 +132,12 @@ final class SharedDataStore: @unchecked Sendable {
         reloadWidgetTimelines()
     }
 
+    func addTaskFromSpeech(_ text: String, categoryId: UUID) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        addTask(TaskItem(text: trimmed, categoryId: categoryId))
+    }
+
     func toggleTask(_ taskId: UUID) {
         if let index = tasks.firstIndex(where: { $0.id == taskId }) {
             tasks[index].isDone.toggle()
@@ -164,8 +170,13 @@ final class SharedDataStore: @unchecked Sendable {
 
     var selectedCategory: Category? {
         guard !categories.isEmpty else { return nil }
-        let index = min(selectedCategoryIndex, categories.count - 1)
-        return categories[max(0, index)]
+        let clamped = max(0, min(selectedCategoryIndex, categories.count - 1))
+        return categories[clamped]
+    }
+
+    func categoryColor(for categoryId: UUID) -> Color {
+        let hex = categories.first { $0.id == categoryId }?.colorHex
+        return Color(hex: hex ?? AppConstants.presetColors[0])
     }
 
     func switchCategory(direction: Int) {
