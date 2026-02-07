@@ -11,7 +11,6 @@ final class SharedDataStore: @unchecked Sendable {
 
     private var containerURL: URL? {
         fileManager.containerURL(forSecurityApplicationGroupIdentifier: AppConstants.appGroupID)
-            ?? fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
     }
 
     private var categoriesFileURL: URL? {
@@ -89,9 +88,10 @@ final class SharedDataStore: @unchecked Sendable {
     // MARK: - Category Operations
 
     func initializeDefaultsIfNeeded() {
-        let defaults = sharedDefaults ?? UserDefaults.standard
-        guard !defaults.bool(forKey: AppConstants.hasLaunchedBeforeKey) else { return }
-
+        guard categories.isEmpty else {
+            reloadWidgetTimelines()
+            return
+        }
         categories = Category.defaults
         saveCategories()
 
@@ -99,19 +99,20 @@ final class SharedDataStore: @unchecked Sendable {
         tasks.append(sampleTask)
         saveTasks()
 
-        defaults.set(true, forKey: AppConstants.hasLaunchedBeforeKey)
         reloadWidgetTimelines()
     }
 
     func addCategory(_ category: Category) {
         categories.append(category)
         saveCategories()
+        reloadWidgetTimelines()
     }
 
     func updateCategory(_ category: Category) {
         if let index = categories.firstIndex(where: { $0.id == category.id }) {
             categories[index] = category
             saveCategories()
+            reloadWidgetTimelines()
         }
     }
 

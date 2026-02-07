@@ -6,7 +6,6 @@ enum AppConstants {
     static let tasksFileName = "tasks.json"
     static let selectedCategoryIndexKey = "selectedCategoryIndex"
     static let urlScheme = "voicefusen"
-    static let hasLaunchedBeforeKey = "hasLaunchedBefore"
 
     static let presetColors: [String] = [
         "#4A90D9", // Blue
