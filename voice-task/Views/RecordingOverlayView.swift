@@ -2,9 +2,9 @@ import SwiftUI
 
 struct RecordingOverlayView: View {
     @Environment(SharedDataStore.self) private var dataStore
-    @Environment(\.dismiss) private var dismiss
 
     let categoryId: UUID
+    let onDismiss: () -> Void
 
     @State private var speechManager = SpeechRecognitionManager()
     @State private var isRecording = false
@@ -12,9 +12,10 @@ struct RecordingOverlayView: View {
 
     var body: some View {
         ZStack {
-            dimmedBackground
+            background
             recordingPanel
         }
+        .ignoresSafeArea()
         .onAppear {
             guard !hasStarted else { return }
             hasStarted = true
@@ -24,9 +25,8 @@ struct RecordingOverlayView: View {
 
     // MARK: - Subviews
 
-    private var dimmedBackground: some View {
-        Color.black.opacity(DesignMetrics.Opacity.dimmedOverlay)
-            .ignoresSafeArea()
+    private var background: some View {
+        Color.black.opacity(0.85)
             .onTapGesture { cancelAndDismiss() }
     }
 
@@ -69,7 +69,7 @@ struct RecordingOverlayView: View {
             speechManager.stopRecording()
             isRecording = false
             dataStore.addTaskFromSpeech(speechManager.recognizedText, categoryId: categoryId)
-            dismiss()
+            onDismiss()
         } else {
             startRecording()
         }
@@ -85,6 +85,6 @@ struct RecordingOverlayView: View {
 
     private func cancelAndDismiss() {
         if isRecording { speechManager.stopRecording() }
-        dismiss()
+        onDismiss()
     }
 }
