@@ -14,7 +14,7 @@ struct CategoryCard: View {
 
             Text("\(pendingCount)件")
                 .font(.system(size: DesignMetrics.FontSize.caption))
-                .foregroundStyle(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: DesignMetrics.Size.categoryCardMinHeight, alignment: .leading)
         .padding(DesignMetrics.Spacing.md)

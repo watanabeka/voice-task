@@ -4,7 +4,7 @@ struct TaskRow: View {
     let task: TaskItem
     let onToggle: () -> Void
 
-    private var stateColor: Color { task.isDone ? .textDone : .textPrimary }
+    private var stateColor: Color { task.isDone ? Color.textDone : Color.textPrimary }
 
     var body: some View {
         HStack(spacing: DesignMetrics.Spacing.sm) {
@@ -18,14 +18,14 @@ struct TaskRow: View {
             Text(task.text)
                 .font(.system(size: DesignMetrics.FontSize.body))
                 .foregroundStyle(stateColor)
-                .strikethrough(task.isDone, color: .textDone)
+                .strikethrough(task.isDone, color: Color.textDone)
                 .lineLimit(2)
 
             Spacer()
 
             Text(task.createdAt.formatted(date: .abbreviated, time: .shortened))
                 .font(.system(size: DesignMetrics.FontSize.caption))
-                .foregroundStyle(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .padding(.vertical, DesignMetrics.Spacing.xxs)
         .opacity(task.isDone ? DesignMetrics.Opacity.doneTask : 1.0)

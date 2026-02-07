@@ -34,12 +34,12 @@ struct RecordingOverlayView: View {
         VStack(spacing: DesignMetrics.Spacing.lg) {
             Text(isRecording ? "録音中..." : "録音準備完了")
                 .font(.system(size: DesignMetrics.FontSize.headline, weight: .semibold))
-                .foregroundStyle(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
 
             if !speechManager.recognizedText.isEmpty {
                 Text(speechManager.recognizedText)
                     .font(.system(size: DesignMetrics.FontSize.body))
-                    .foregroundStyle(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .frame(maxHeight: 100)
@@ -51,7 +51,7 @@ struct RecordingOverlayView: View {
 
             Button("キャンセル") { cancelAndDismiss() }
                 .font(.system(size: DesignMetrics.FontSize.body))
-                .foregroundStyle(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
         }
         .padding(DesignMetrics.Spacing.xl)
         .background(
