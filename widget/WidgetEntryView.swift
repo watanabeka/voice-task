@@ -6,11 +6,7 @@ struct VoiceFusenWidgetEntryView: View {
     var entry: VoiceFusenProvider.Entry
 
     private var categoryColor: Color {
-        Color(hex: entry.category?.colorHex ?? AppConstants.presetColors[0])
-    }
-
-    private var categoryName: String {
-        entry.category?.name ?? "カテゴリなし"
+        Color(hex: entry.category.colorHex)
     }
 
     var body: some View {
@@ -42,7 +38,7 @@ struct VoiceFusenWidgetEntryView: View {
 
             Spacer()
 
-            Text(categoryName)
+            Text(entry.category.name)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(categoryColor)
                 .lineLimit(1)
@@ -58,21 +54,17 @@ struct VoiceFusenWidgetEntryView: View {
         }
     }
 
-    @ViewBuilder
     private var recordButton: some View {
-        if let category = entry.category,
-           let url = URL(string: "\(AppConstants.urlScheme)://record?categoryId=\(category.id.uuidString)") {
-            Link(destination: url) {
-                Circle()
-                    .fill(categoryColor)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white)
-                    )
-                    .shadow(color: categoryColor.opacity(0.3), radius: 4, y: 2)
-            }
+        Link(destination: URL(string: "\(AppConstants.urlScheme)://record?categoryId=\(entry.category.id.uuidString)")!) {
+            Circle()
+                .fill(categoryColor)
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white)
+                )
+                .shadow(color: categoryColor.opacity(0.3), radius: 4, y: 2)
         }
     }
 }

@@ -2,7 +2,7 @@ import WidgetKit
 
 struct VoiceFusenEntry: TimelineEntry {
     let date: Date
-    let category: Category?
+    let category: Category
     let pendingCount: Int
 }
 
@@ -10,7 +10,7 @@ struct VoiceFusenProvider: TimelineProvider {
     func placeholder(in context: Context) -> VoiceFusenEntry {
         VoiceFusenEntry(
             date: Date(),
-            category: Category(name: "仕事", colorHex: AppConstants.presetColors[0], order: 0),
+            category: Category.defaults[0],
             pendingCount: 0
         )
     }
@@ -27,7 +27,7 @@ struct VoiceFusenProvider: TimelineProvider {
 
     private func makeCurrentEntry() -> VoiceFusenEntry {
         let category = WidgetDataStore.selectedCategory()
-        let count = category.map { WidgetDataStore.pendingTaskCount(for: $0.id) } ?? 0
+        let count = WidgetDataStore.pendingTaskCount(for: category.id)
         return VoiceFusenEntry(date: Date(), category: category, pendingCount: count)
     }
 }
