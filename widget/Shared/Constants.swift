@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppConstants {
-    static let appGroupID = "group.com.voicefusen.shared"
+    static let appGroupID = "group.com.seastar.voice-task"
     static let categoriesKey = "categories_data"
     static let tasksKey = "tasks_data"
     static let selectedCategoryIndexKey = "selectedCategoryIndex"
