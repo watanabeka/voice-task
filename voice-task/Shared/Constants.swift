@@ -2,8 +2,8 @@ import Foundation
 
 enum AppConstants {
     static let appGroupID = "group.com.voicefusen.shared"
-    static let categoriesFileName = "categories.json"
-    static let tasksFileName = "tasks.json"
+    static let categoriesKey = "categories_data"
+    static let tasksKey = "tasks_data"
     static let selectedCategoryIndexKey = "selectedCategoryIndex"
     static let urlScheme = "voicefusen"
 

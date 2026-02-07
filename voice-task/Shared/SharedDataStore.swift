@@ -7,25 +7,10 @@ final class SharedDataStore: @unchecked Sendable {
     var categories: [Category] = []
     var tasks: [TaskItem] = []
 
-    private let fileManager = FileManager.default
-
-    private var containerURL: URL? {
-        fileManager.containerURL(forSecurityApplicationGroupIdentifier: AppConstants.appGroupID)
-    }
-
-    private var categoriesFileURL: URL? {
-        containerURL?.appendingPathComponent(AppConstants.categoriesFileName)
-    }
-
-    private var tasksFileURL: URL? {
-        containerURL?.appendingPathComponent(AppConstants.tasksFileName)
-    }
-
-    private var sharedDefaults: UserDefaults? {
-        UserDefaults(suiteName: AppConstants.appGroupID)
-    }
+    private let defaults: UserDefaults
 
     init() {
+        self.defaults = UserDefaults(suiteName: AppConstants.appGroupID) ?? .standard
         loadAll()
     }
 
@@ -37,12 +22,8 @@ final class SharedDataStore: @unchecked Sendable {
     }
 
     func loadCategories() {
-        guard let url = categoriesFileURL,
-              fileManager.fileExists(atPath: url.path) else {
-            return
-        }
+        guard let data = defaults.data(forKey: AppConstants.categoriesKey) else { return }
         do {
-            let data = try Data(contentsOf: url)
             categories = try JSONDecoder().decode([Category].self, from: data)
             categories.sort { $0.order < $1.order }
         } catch {
@@ -51,12 +32,8 @@ final class SharedDataStore: @unchecked Sendable {
     }
 
     func loadTasks() {
-        guard let url = tasksFileURL,
-              fileManager.fileExists(atPath: url.path) else {
-            return
-        }
+        guard let data = defaults.data(forKey: AppConstants.tasksKey) else { return }
         do {
-            let data = try Data(contentsOf: url)
             tasks = try JSONDecoder().decode([TaskItem].self, from: data)
         } catch {
             print("Failed to load tasks: \(error)")
@@ -66,23 +43,13 @@ final class SharedDataStore: @unchecked Sendable {
     // MARK: - Save
 
     func saveCategories() {
-        guard let url = categoriesFileURL else { return }
-        do {
-            let data = try JSONEncoder().encode(categories)
-            try data.write(to: url, options: .atomic)
-        } catch {
-            print("Failed to save categories: \(error)")
-        }
+        guard let data = try? JSONEncoder().encode(categories) else { return }
+        defaults.set(data, forKey: AppConstants.categoriesKey)
     }
 
     func saveTasks() {
-        guard let url = tasksFileURL else { return }
-        do {
-            let data = try JSONEncoder().encode(tasks)
-            try data.write(to: url, options: .atomic)
-        } catch {
-            print("Failed to save tasks: \(error)")
-        }
+        guard let data = try? JSONEncoder().encode(tasks) else { return }
+        defaults.set(data, forKey: AppConstants.tasksKey)
     }
 
     // MARK: - Category Operations
@@ -170,10 +137,8 @@ final class SharedDataStore: @unchecked Sendable {
     // MARK: - Widget Category Selection
 
     var selectedCategoryIndex: Int {
-        get { sharedDefaults?.integer(forKey: AppConstants.selectedCategoryIndexKey) ?? 0 }
-        set {
-            sharedDefaults?.set(newValue, forKey: AppConstants.selectedCategoryIndexKey)
-        }
+        get { defaults.integer(forKey: AppConstants.selectedCategoryIndexKey) }
+        set { defaults.set(newValue, forKey: AppConstants.selectedCategoryIndexKey) }
     }
 
     var selectedCategory: Category? {

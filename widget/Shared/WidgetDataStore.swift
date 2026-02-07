@@ -1,10 +1,6 @@
 import Foundation
 
 struct WidgetDataStore: Sendable {
-    private static var containerURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppConstants.appGroupID)
-    }
-
     private static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: AppConstants.appGroupID)
     }
@@ -12,9 +8,7 @@ struct WidgetDataStore: Sendable {
     // MARK: - Load
 
     static func loadCategories() -> [Category] {
-        guard let url = containerURL?.appendingPathComponent(AppConstants.categoriesFileName),
-              FileManager.default.fileExists(atPath: url.path),
-              let data = try? Data(contentsOf: url),
+        guard let data = sharedDefaults?.data(forKey: AppConstants.categoriesKey),
               let categories = try? JSONDecoder().decode([Category].self, from: data),
               !categories.isEmpty else {
             return []
@@ -23,9 +17,7 @@ struct WidgetDataStore: Sendable {
     }
 
     static func loadTasks() -> [TaskItem] {
-        guard let url = containerURL?.appendingPathComponent(AppConstants.tasksFileName),
-              FileManager.default.fileExists(atPath: url.path),
-              let data = try? Data(contentsOf: url),
+        guard let data = sharedDefaults?.data(forKey: AppConstants.tasksKey),
               let tasks = try? JSONDecoder().decode([TaskItem].self, from: data) else {
             return []
         }
