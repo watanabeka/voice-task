@@ -5,42 +5,48 @@ import WidgetKit
 struct VoiceFusenWidgetEntryView: View {
     var entry: VoiceFusenProvider.Entry
 
-    private var categoryColor: Color {
-        Color(hex: entry.category.colorHex)
+    var body: some View {
+        if let category = entry.category {
+            activeView(category: category)
+        } else {
+            emptyView
+        }
     }
 
-    var body: some View {
-        VStack(spacing: 6) {
-            categoryNavigationRow
+    // MARK: - データあり
+
+    private func activeView(category: Category) -> some View {
+        let color = Color(hex: category.colorHex)
+
+        return VStack(spacing: 6) {
+            categoryNavigationRow(category: category, color: color)
             Spacer()
-            recordButton
+            recordButton(category: category, color: color)
             Spacer()
         }
         .padding(12)
         .containerBackground(for: .widget) {
             ZStack {
                 Color.white
-                categoryColor.opacity(0.12)
+                color.opacity(0.12)
             }
         }
     }
 
-    // MARK: - Subviews
-
-    private var categoryNavigationRow: some View {
+    private func categoryNavigationRow(category: Category, color: Color) -> some View {
         HStack {
             Button(intent: SwitchCategoryIntent(direction: -1)) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(categoryColor)
+                    .foregroundStyle(color)
             }
             .buttonStyle(.plain)
 
             Spacer()
 
-            Text(entry.category.name)
+            Text(category.name)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(categoryColor)
+                .foregroundStyle(color)
                 .lineLimit(1)
 
             Spacer()
@@ -48,23 +54,40 @@ struct VoiceFusenWidgetEntryView: View {
             Button(intent: SwitchCategoryIntent(direction: 1)) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(categoryColor)
+                    .foregroundStyle(color)
             }
             .buttonStyle(.plain)
         }
     }
 
-    private var recordButton: some View {
-        Link(destination: URL(string: "\(AppConstants.urlScheme)://record?categoryId=\(entry.category.id.uuidString)")!) {
+    private func recordButton(category: Category, color: Color) -> some View {
+        Link(destination: URL(string: "\(AppConstants.urlScheme)://record?categoryId=\(category.id.uuidString)")!) {
             Circle()
-                .fill(categoryColor)
+                .fill(color)
                 .frame(width: 44, height: 44)
                 .overlay(
                     Image(systemName: "mic.fill")
                         .font(.system(size: 18))
                         .foregroundStyle(.white)
                 )
-                .shadow(color: categoryColor.opacity(0.3), radius: 4, y: 2)
+                .shadow(color: color.opacity(0.3), radius: 4, y: 2)
+        }
+    }
+
+    // MARK: - データなし（アプリ未起動）
+
+    private var emptyView: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "mic.fill")
+                .font(.system(size: 24))
+                .foregroundStyle(.gray.opacity(0.4))
+            Text("アプリを開いて\nセットアップ")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .containerBackground(for: .widget) {
+            Color.white
         }
     }
 }

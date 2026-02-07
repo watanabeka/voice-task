@@ -17,7 +17,7 @@ struct WidgetDataStore: Sendable {
               let data = try? Data(contentsOf: url),
               let categories = try? JSONDecoder().decode([Category].self, from: data),
               !categories.isEmpty else {
-            return Category.defaults
+            return []
         }
         return categories.sorted { $0.order < $1.order }
     }
@@ -39,8 +39,9 @@ struct WidgetDataStore: Sendable {
         set { sharedDefaults?.set(newValue, forKey: AppConstants.selectedCategoryIndexKey) }
     }
 
-    static func selectedCategory() -> Category {
+    static func selectedCategory() -> Category? {
         let categories = loadCategories()
+        guard !categories.isEmpty else { return nil }
         let index = max(0, min(selectedCategoryIndex, categories.count - 1))
         return categories[index]
     }
@@ -51,6 +52,7 @@ struct WidgetDataStore: Sendable {
 
     static func switchCategory(direction: Int) {
         let categories = loadCategories()
+        guard !categories.isEmpty else { return }
         var newIndex = selectedCategoryIndex + direction
         if newIndex < 0 { newIndex = categories.count - 1 }
         if newIndex >= categories.count { newIndex = 0 }

@@ -16,9 +16,7 @@ struct Category: Identifiable, Codable, Hashable, Sendable {
     }
 
     static let defaults: [Category] = [
-        Category(name: "仕事", colorHex: "#4A90D9", order: 0),
-        Category(name: "買い物", colorHex: "#5AB88F", order: 1),
-        Category(name: "アイデア", colorHex: "#F5A623", order: 2),
+        Category(name: "カテゴリ", colorHex: "#4A90D9", order: 0),
     ]
 }
 

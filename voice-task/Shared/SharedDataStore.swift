@@ -11,6 +11,7 @@ final class SharedDataStore: @unchecked Sendable {
 
     private var containerURL: URL? {
         fileManager.containerURL(forSecurityApplicationGroupIdentifier: AppConstants.appGroupID)
+            ?? fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
     }
 
     private var categoriesFileURL: URL? {
@@ -88,12 +89,18 @@ final class SharedDataStore: @unchecked Sendable {
     // MARK: - Category Operations
 
     func initializeDefaultsIfNeeded() {
-        let defaults = sharedDefaults
-        if defaults?.bool(forKey: AppConstants.hasLaunchedBeforeKey) != true {
-            categories = Category.defaults
-            saveCategories()
-            defaults?.set(true, forKey: AppConstants.hasLaunchedBeforeKey)
-        }
+        let defaults = sharedDefaults ?? UserDefaults.standard
+        guard !defaults.bool(forKey: AppConstants.hasLaunchedBeforeKey) else { return }
+
+        categories = Category.defaults
+        saveCategories()
+
+        let sampleTask = TaskItem(text: "ここにタスクが追加されます", categoryId: categories[0].id)
+        tasks.append(sampleTask)
+        saveTasks()
+
+        defaults.set(true, forKey: AppConstants.hasLaunchedBeforeKey)
+        reloadWidgetTimelines()
     }
 
     func addCategory(_ category: Category) {
